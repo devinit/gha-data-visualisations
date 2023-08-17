@@ -18,8 +18,8 @@ const offsetMapping = [
   { value: 43, offset: -538 },
   { value: 43.5, offset: -494 },
 ];
-const countryFilterOptions = (countryList) =>
-  [{ value: 'all', label: 'All' }].concat(countryList.map((country) => ({ value: country, label: country })));
+// const countryFilterOptions = (countryList) =>
+//   [{ value: 'all', label: 'All' }].concat(countryList.map((country) => ({ value: country, label: country })));
 
 const yearFilterOptions = (yearList) => yearList.map((year) => ({ value: year, label: year }));
 
@@ -137,7 +137,7 @@ const renderClimateFundingChart = () => {
           const dichart = new window.DICharts.Chart(chartNode.parentElement);
 
           let variable = 'Total_Climate_Share';
-          let country = 'all';
+          const country = 'all';
           let year = '2021';
           const data = await fetchCSVData(DATA_URL);
           const years = Array.from(new Set(data.map((d) => d.year))).reverse();
@@ -171,17 +171,17 @@ const renderClimateFundingChart = () => {
             );
           };
 
-          const onSelectCountry = (item) => {
-            country = item.value ? item.value : 'all';
-            consolidatedData = groupedCountryData(filteredData(data), countries, years, country);
-            renderDefaultChart(
-              chart,
-              years,
-              seriesData(consolidatedData, variable, year),
-              variable,
-              getMinMax(consolidatedData, year)
-            );
-          };
+          // const onSelectCountry = (item) => {
+          //   country = item.value ? item.value : 'all';
+          //   consolidatedData = groupedCountryData(filteredData(data), countries, years, country);
+          //   renderDefaultChart(
+          //     chart,
+          //     years,
+          //     seriesData(consolidatedData, variable, year),
+          //     variable,
+          //     getMinMax(consolidatedData, year)
+          //   );
+          // };
 
           const onSelectYear = (item) => {
             year = item.value ? item.value : year;
@@ -209,7 +209,7 @@ const renderClimateFundingChart = () => {
                   minWidth: '150px',
                 }}
               />
-              <Select
+              {/* <Select
                 classNamePrefix="climate-chart-country-select"
                 label="Select country"
                 options={countryFilterOptions(countries)}
@@ -218,7 +218,7 @@ const renderClimateFundingChart = () => {
                 css={{
                   minWidth: '150px',
                 }}
-              />
+              /> */}
               <Select
                 classNamePrefix="climate-chart-year-select"
                 label="Select year"
