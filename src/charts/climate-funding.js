@@ -13,11 +13,7 @@ const filterOptions = [
   { value: 'Total_Climate_Share', label: 'Percentage share' },
 ];
 const requiredVariables = ['Total_Climate_USD', 'Total_Climate_Share', 'Vulnerability_Score'];
-const offsetMapping = [
-  { value: 42.5, offset: -530 },
-  { value: 43, offset: -538 },
-  { value: 43.5, offset: -494 },
-];
+
 // const countryFilterOptions = (countryList) =>
 //   [{ value: 'all', label: 'All' }].concat(countryList.map((country) => ({ value: country, label: country })));
 
@@ -69,7 +65,6 @@ const seriesData = (data, variable, year) =>
     .map((d) => [Number(d.Vulnerability_Score), Number(d[variable]), d.name]);
 
 const renderDefaultChart = (chart, years, data, variable, scaleData) => {
-  const midScaleValue = Math.round(scaleData.min) + (Math.round(scaleData.max) - Math.round(scaleData.min)) / 2;
   const option = {
     visualMap: {
       type: 'piecewise',
@@ -100,10 +95,6 @@ const renderDefaultChart = (chart, years, data, variable, scaleData) => {
     },
     yAxis: {
       name: filterOptions.find((item) => item.value === variable).label,
-      axisLine: {
-        onZero: false,
-      },
-      offset: offsetMapping.find((item) => item.value === midScaleValue).offset,
     },
     series: [
       {
