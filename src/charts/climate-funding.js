@@ -16,6 +16,8 @@ const requiredVariables = ['Total_Climate_USD', 'Total_Climate_Share', 'Vulnerab
 const countryFilterOptions = (countryList) =>
   [{ value: 'all', label: 'All' }].concat(countryList.map((country) => ({ value: country, label: country })));
 
+const yearFilterOptions = (yearList) => yearList.map((year) => ({ value: year, label: year }));
+
 const groupedCountryData = (data, countries, years, countryName) => {
   const finalData = [];
   if (countryName === 'all') {
@@ -49,58 +51,18 @@ const groupedCountryData = (data, countries, years, countryName) => {
   return finalData;
 };
 
-const groupedSeriesData = (data, variable, years) =>
-  years.map((year) => ({
-    series: [
-      {
-        data: data
-          .filter((item) => item.year === year && Number(item.Vulnerability_Score) !== 0)
-          .map((d) => [Number(d.Vulnerability_Score), Number(d[variable]), d.name]),
-      },
-    ],
-  }));
+const seriesData = (data, variable, year) =>
+  data
+    .filter((item) => item.year === year && Number(item.Vulnerability_Score) !== 0)
+    .map((d) => [Number(d.Vulnerability_Score), Number(d[variable]), d.name]);
 
 const renderDefaultChart = (chart, years, data, variable) => {
   const option = {
-    timeline: {
-      axisType: 'category',
-      orient: 'vertical',
-      top: 'center',
-      right: 50,
-      height: 300,
-      width: 10,
-      data: years,
-      label: {
-        position: 10,
-      },
-      tooltip: {
-        show: false,
-      },
-      checkpointStyle: {
-        color: 'black',
-      },
-      progress: {
-        lineStyle: {
-          color: 'black',
-        },
-        itemStyle: {
-          color: 'black',
-        },
-      },
-      controlStyle: {
-        show: false,
-      },
-      emphasis: {
-        itemStyle: {
-          color: 'black',
-        },
-      },
-    },
     visualMap: {
       type: 'piecewise',
       dimension: 0,
       splitNumber: 2,
-      min: 25,
+      min: 0,
       max: 65,
       inRange: {
         color: ['#77adde', '#0071b1'],
@@ -123,7 +85,7 @@ const renderDefaultChart = (chart, years, data, variable) => {
     },
     yAxis: {
       name: filterOptions.find((item) => item.value === variable).label,
-      offset: -600,
+      // offset: -600,
       axisLine: {
         onZero: false,
       },
@@ -131,6 +93,7 @@ const renderDefaultChart = (chart, years, data, variable) => {
     series: [
       {
         type: 'scatter',
+        data,
         itemStyle: {
           opacity: 1,
         },
@@ -143,7 +106,6 @@ const renderDefaultChart = (chart, years, data, variable) => {
         },
       },
     ],
-    options: data,
   };
 
   chart.setOption(deepMerge(option, defaultOptions));
@@ -161,6 +123,7 @@ const renderClimateFundingChart = () => {
 
           let variable = 'Total_Climate_USD';
           let country = 'all';
+          let year = '2021';
           const data = await fetchCSVData(DATA_URL);
           const years = Array.from(new Set(data.map((d) => d.year))).reverse();
 
@@ -171,20 +134,26 @@ const renderClimateFundingChart = () => {
           // create UI elements
 
           const chart = window.echarts.init(chartNode);
-          renderDefaultChart(chart, years, groupedSeriesData(consolidatedData, variable, years), variable);
+          renderDefaultChart(chart, years, seriesData(consolidatedData, variable, year), variable);
 
           const filterWrapper = addFilterWrapper(chartNode);
 
           const onSelectFilter = (item) => {
             variable = item.value ? item.value : variable;
             consolidatedData = groupedCountryData(filteredData(data), countries, years, country);
-            renderDefaultChart(chart, years, groupedSeriesData(consolidatedData, variable, years), variable);
+            renderDefaultChart(chart, years, seriesData(consolidatedData, variable, year), variable);
           };
 
           const onSelectCountry = (item) => {
             country = item.value ? item.value : 'all';
             consolidatedData = groupedCountryData(filteredData(data), countries, years, country);
-            renderDefaultChart(chart, years, groupedSeriesData(consolidatedData, variable, years), variable);
+            renderDefaultChart(chart, years, seriesData(consolidatedData, variable, year), variable);
+          };
+
+          const onSelectYear = (item) => {
+            year = item.value ? item.value : year;
+            consolidatedData = groupedCountryData(filteredData(data), countries, years, country);
+            renderDefaultChart(chart, years, seriesData(consolidatedData, variable, year), variable);
           };
 
           // create dropdowns
@@ -207,6 +176,16 @@ const renderClimateFundingChart = () => {
                 options={countryFilterOptions(countries)}
                 defaultValue={[{ value: 'all', label: 'All' }]}
                 onChange={onSelectCountry}
+                css={{
+                  minWidth: '150px',
+                }}
+              />
+              <Select
+                classNamePrefix="climate-chart-year-select"
+                label="Select year"
+                options={yearFilterOptions(years)}
+                defaultValue={[{ value: '2021', label: '2021' }]}
+                onChange={onSelectYear}
                 css={{
                   minWidth: '150px',
                 }}
