@@ -75,6 +75,8 @@ const renderDefaultChart = (chart, years, data, variable, scaleData) => {
       type: 'piecewise',
       dimension: 0,
       splitNumber: 2,
+      text: ['High', 'Low'],
+      bottom: '50%',
       min: Math.round(scaleData.min),
       max: Math.round(scaleData.max),
       inRange: {
