@@ -87,11 +87,12 @@ const renderDefaultChart = (chart, years, data, variable, scaleData) => {
       }
       `,
     },
-    grid: { bottom: '10%', top: '20%' },
+    grid: { bottom: '10%', top: '20%', left: '5%' },
     xAxis: {
       name: 'Vulnerability score',
       nameLocation: 'center',
       scale: true,
+      nameGap: 25,
     },
     yAxis: {
       name: filterOptions.find((item) => item.value === variable).label,
@@ -114,7 +115,7 @@ const renderDefaultChart = (chart, years, data, variable, scaleData) => {
     ],
   };
 
-  chart.setOption(deepMerge(option, defaultOptions));
+  chart.setOption(deepMerge(defaultOptions, option));
 
   return chart;
 };
