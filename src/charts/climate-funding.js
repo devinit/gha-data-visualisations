@@ -134,7 +134,7 @@ const renderClimateFundingChart = () => {
         Array.prototype.forEach.call(chartNodes, async (chartNode) => {
           const dichart = new window.DICharts.Chart(chartNode.parentElement);
 
-          let variable = 'Total_Climate_USD';
+          let variable = 'Total_Climate_Share';
           let country = 'all';
           let year = '2021';
           const data = await fetchCSVData(DATA_URL);
@@ -201,7 +201,7 @@ const renderClimateFundingChart = () => {
                 classNamePrefix="climate-chart-select"
                 label="Select value type"
                 options={filterOptions}
-                defaultValue={[{ value: 'Total_Climate_USD', label: 'USD millions' }]}
+                defaultValue={[{ value: 'Total_Climate_Share', label: 'Percentage share' }]}
                 onChange={onSelectFilter}
                 css={{
                   minWidth: '150px',
