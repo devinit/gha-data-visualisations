@@ -54,8 +54,8 @@ const groupedSeriesData = (data, variable, years) =>
     series: [
       {
         data: data
-          .filter((item) => item.year === year)
-          .map((d) => [Number(d[variable]), Number(d.Vulnerability_Score), d.name]),
+          .filter((item) => item.year === year && Number(item.Vulnerability_Score) !== 0)
+          .map((d) => [Number(d.Vulnerability_Score), Number(d[variable]), d.name]),
       },
     ],
   }));
@@ -64,31 +64,27 @@ const renderDefaultChart = (chart, years, data, variable) => {
   const option = {
     timeline: {
       axisType: 'category',
-      orient: 'horizontal',
-      top: 20,
-      bottom: 20,
+      orient: 'vertical',
+      top: 'center',
+      right: 50,
+      height: 300,
+      width: 10,
       data: years,
-      lineStyle: {
-        color: '#f49b21',
-      },
       label: {
         position: 10,
       },
       tooltip: {
         show: false,
       },
-      itemStyle: {
-        color: '#f49b21',
-      },
       checkpointStyle: {
-        color: '#7d4712',
+        color: 'black',
       },
       progress: {
         lineStyle: {
-          color: '#7d4712',
+          color: 'black',
         },
         itemStyle: {
-          color: '#7d4712',
+          color: 'black',
         },
       },
       controlStyle: {
@@ -96,52 +92,54 @@ const renderDefaultChart = (chart, years, data, variable) => {
       },
       emphasis: {
         itemStyle: {
-          color: '#7d4712',
+          color: 'black',
         },
       },
     },
     visualMap: {
-      type: 'continuous',
-      min: 0,
+      type: 'piecewise',
+      dimension: 0,
+      splitNumber: 2,
+      min: 25,
       max: 65,
-      textGap: 5,
-      dimension: 1,
-      text: ['65', '0'],
       inRange: {
-        color: ['#feedd4', '#fee7c1', '#fedcab', '#fac47e', '#f7a838', '#df8000', '#ba6b15', '#7d4712'],
+        color: ['#77adde', '#0071b1'],
       },
     },
     tooltip: {
       trigger: 'item',
       formatter: (params) => `${params.data[2]} <br/>
-      Vulnerability score: ${params.data[1]} <br/>
-      ${filterOptions.find((item) => item.value === variable).label}: ${params.data[0]} ${
+      Vulnerability score: ${params.data[0]} <br/>
+      ${filterOptions.find((item) => item.value === variable).label}: ${params.data[1]} ${
         variable === 'Total_Climate_USD' ? 'million' : '%'
       }
       `,
     },
     grid: { bottom: '10%', top: '20%' },
-    xAxis: { show: false },
-    yAxis: { show: false },
+    xAxis: {
+      name: 'Vulnerability score',
+      nameLocation: 'center',
+      scale: true,
+    },
+    yAxis: {
+      name: filterOptions.find((item) => item.value === variable).label,
+      offset: -600,
+      axisLine: {
+        onZero: false,
+      },
+    },
     series: [
       {
         type: 'scatter',
         itemStyle: {
-          borderColor: '#7d4712',
           opacity: 1,
         },
+        symbolSize: 15,
         emphasis: {
           itemStyle: {
             borderColor: '#333',
             borderWidth: 2.5,
           },
-        },
-        symbolSize(val) {
-          if (variable === 'Total_Climate_USD') {
-            return Math.sqrt(val[0]) * 5;
-          }
-
-          return val[0] * 2;
         },
       },
     ],
@@ -164,7 +162,7 @@ const renderClimateFundingChart = () => {
           let variable = 'Total_Climate_USD';
           let country = 'all';
           const data = await fetchCSVData(DATA_URL);
-          const years = Array.from(new Set(data.map((d) => d.year)));
+          const years = Array.from(new Set(data.map((d) => d.year))).reverse();
 
           const countries = Array.from(new Set(data.map((d) => d.countryname)));
           const filteredData = (csvData) => csvData.filter((item) => requiredVariables.includes(item.variable));
