@@ -13,6 +13,11 @@ const filterOptions = [
   { value: 'Total_Climate_Share', label: 'Percentage share' },
 ];
 const requiredVariables = ['Total_Climate_USD', 'Total_Climate_Share', 'Vulnerability_Score'];
+const offsetMapping = [
+  { value: 42.5, offset: -530 },
+  { value: 43, offset: -538 },
+  { value: 43.5, offset: -494 },
+];
 const countryFilterOptions = (countryList) =>
   [{ value: 'all', label: 'All' }].concat(countryList.map((country) => ({ value: country, label: country })));
 
@@ -51,19 +56,27 @@ const groupedCountryData = (data, countries, years, countryName) => {
   return finalData;
 };
 
+const getMinMax = (data, year) => {
+  const vulnerabilityData = data
+    .filter((item) => item.year === year && Number(item.Vulnerability_Score) !== 0)
+    .map((d) => Number(d.Vulnerability_Score));
+
+  return { max: Math.max(...vulnerabilityData), min: Math.min(...vulnerabilityData) };
+};
 const seriesData = (data, variable, year) =>
   data
     .filter((item) => item.year === year && Number(item.Vulnerability_Score) !== 0)
     .map((d) => [Number(d.Vulnerability_Score), Number(d[variable]), d.name]);
 
-const renderDefaultChart = (chart, years, data, variable) => {
+const renderDefaultChart = (chart, years, data, variable, scaleData) => {
+  const midScaleValue = Math.round(scaleData.min) + (Math.round(scaleData.max) - Math.round(scaleData.min)) / 2;
   const option = {
     visualMap: {
       type: 'piecewise',
       dimension: 0,
       splitNumber: 2,
-      min: 0,
-      max: 65,
+      min: Math.round(scaleData.min),
+      max: Math.round(scaleData.max),
       inRange: {
         color: ['#77adde', '#0071b1'],
       },
@@ -85,10 +98,10 @@ const renderDefaultChart = (chart, years, data, variable) => {
     },
     yAxis: {
       name: filterOptions.find((item) => item.value === variable).label,
-      // offset: -600,
       axisLine: {
         onZero: false,
       },
+      offset: offsetMapping.find((item) => item.value === midScaleValue).offset,
     },
     series: [
       {
@@ -134,26 +147,50 @@ const renderClimateFundingChart = () => {
           // create UI elements
 
           const chart = window.echarts.init(chartNode);
-          renderDefaultChart(chart, years, seriesData(consolidatedData, variable, year), variable);
+          renderDefaultChart(
+            chart,
+            years,
+            seriesData(consolidatedData, variable, year),
+            variable,
+            getMinMax(consolidatedData, year)
+          );
 
           const filterWrapper = addFilterWrapper(chartNode);
 
           const onSelectFilter = (item) => {
             variable = item.value ? item.value : variable;
             consolidatedData = groupedCountryData(filteredData(data), countries, years, country);
-            renderDefaultChart(chart, years, seriesData(consolidatedData, variable, year), variable);
+            renderDefaultChart(
+              chart,
+              years,
+              seriesData(consolidatedData, variable, year),
+              variable,
+              getMinMax(consolidatedData, year)
+            );
           };
 
           const onSelectCountry = (item) => {
             country = item.value ? item.value : 'all';
             consolidatedData = groupedCountryData(filteredData(data), countries, years, country);
-            renderDefaultChart(chart, years, seriesData(consolidatedData, variable, year), variable);
+            renderDefaultChart(
+              chart,
+              years,
+              seriesData(consolidatedData, variable, year),
+              variable,
+              getMinMax(consolidatedData, year)
+            );
           };
 
           const onSelectYear = (item) => {
             year = item.value ? item.value : year;
             consolidatedData = groupedCountryData(filteredData(data), countries, years, country);
-            renderDefaultChart(chart, years, seriesData(consolidatedData, variable, year), variable);
+            renderDefaultChart(
+              chart,
+              years,
+              seriesData(consolidatedData, variable, year),
+              variable,
+              getMinMax(consolidatedData, year)
+            );
           };
 
           // create dropdowns
